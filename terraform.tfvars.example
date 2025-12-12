@@ -1,0 +1,13 @@
+# Copy this file to terraform.tfvars and fill in your values
+# DO NOT commit terraform.tfvars to git
+
+bucket_name = "your-terraform-bucket-name"
+
+# Optional: set `key_name` to an existing EC2 Key Pair in your AWS account
+key_name = ""
+
+# Common tags applied to resources
+common_tags = {
+  Project = "TerraformLab"
+  Owner   = "NOORULAIN924"
+}

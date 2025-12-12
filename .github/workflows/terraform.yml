@@ -1,0 +1,177 @@
+name: Terraform CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to run: plan | apply | destroy'
+        required: true
+        default: 'plan'
+      auto_approve:
+        description: 'If true, skip interactive approval for apply/destroy'
+        required: false
+        default: 'false'
+
+env:
+  TF_IN_AUTOMATION: true
+
+jobs:
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: '1.5.7'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Debug AWS identity
+        run: aws sts get-caller-identity
+        continue-on-error: true
+
+      - name: Terraform Init
+        run: terraform init -input=false
+
+      - name: Terraform Fmt check
+        run: terraform fmt -check
+
+      - name: Terraform Validate
+        run: terraform validate
+
+  plan:
+    name: Plan
+    needs: validate
+    runs-on: ubuntu-latest
+    outputs:
+      plan-created: ${{ steps.plan.outcome }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: '1.5.7'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Debug AWS identity
+        run: aws sts get-caller-identity
+        continue-on-error: true
+
+      - name: Terraform Init
+        run: terraform init -input=false
+
+      - name: Terraform Plan
+        id: plan
+        if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.action == 'plan' }}
+        run: |
+          terraform plan -out=tfplan -input=false
+          terraform show -no-color tfplan > plan.txt
+
+      - name: Upload tfplan and plan.txt
+        if: ${{ always() && (github.event_name != 'workflow_dispatch' || github.event.inputs.action == 'plan') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: |
+            tfplan
+            plan.txt
+
+  apply:
+    name: Apply (manual)
+    needs: plan
+    runs-on: ubuntu-latest
+    environment: production
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: '1.5.7'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Debug AWS identity
+        run: aws sts get-caller-identity
+        continue-on-error: true
+
+      - name: Download plan artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan
+
+      - name: Terraform Init
+        run: terraform init -input=false
+
+      - name: Terraform Apply (from plan)
+        run: |
+          if [ "${{ github.event.inputs.auto_approve }}" = "true" ]; then
+            terraform apply -input=false -auto-approve tfplan
+          else
+            terraform apply -input=false tfplan
+          fi
+
+  destroy:
+    name: Destroy (manual)
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: production
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: '1.5.7'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Debug AWS identity
+        run: aws sts get-caller-identity
+        continue-on-error: true
+
+      - name: Terraform Init
+        run: terraform init -input=false
+
+      - name: Terraform Destroy
+        run: |
+          if [ "${{ github.event.inputs.auto_approve }}" = "true" ]; then
+            terraform destroy -input=false -auto-approve
+          else
+            terraform destroy -input=false
+          fi

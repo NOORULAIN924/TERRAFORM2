@@ -75,6 +75,16 @@ resource "aws_s3_bucket_policy" "public_policy" {
 ############################################
 # DynamoDB for Terraform State Locking
 ############################################
+resource "aws_s3_bucket_object" "index" {
+  bucket       = aws_s3_bucket.website.id
+  key          = "index.html"
+  source       = "index.html"
+  content_type = "text/html"
+  etag         = filemd5("index.html")
+
+  depends_on = [aws_s3_bucket_policy.public_policy]
+}
+
 resource "aws_dynamodb_table" "terraform_locks" {
   name         = "terraform-locks"
   billing_mode = "PAY_PER_REQUEST"
