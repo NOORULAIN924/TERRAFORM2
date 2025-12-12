@@ -3,25 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Terraform Static Website_noorulain</title>
+    <title>My Beautiful Terraform Static Website</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
             text-align: center;
-            padding: 50px;
-            background-color: #f0f0f0;
+            max-width: 800px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
         }
         h1 {
-            color: #333;
+            font-size: 3em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
         }
         p {
-            color: #666;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background: #ff6b6b;
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+        .btn:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+        }
+        .footer {
+            margin-top: 50px;
+            font-size: 0.9em;
+            opacity: 0.7;
+        }
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2em;
+            }
+            p {
+                font-size: 1em;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Welcome to My Updated Static Website!</h1>
-    <p>230924_Noorulain - Updated on December 12, 2025.</p>
-    <p>Built with GitHub Copilot and Terraform.</p>
+    <div class="container">
+        <h1>Welcome to My Beautiful Static Website!</h1>
+        <p>Deployed with Terraform and hosted on AWS S3. This is a stunning example of Infrastructure as Code in action.</p>
+        <a href="#" class="btn">Explore More</a>
+    </div>
+    <div class="footer">
+        <p>Created by Noorulain - Updated on December 12, 2025</p>
+    </div>
 </body>
 </html>
