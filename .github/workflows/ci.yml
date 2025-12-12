@@ -3,7 +3,7 @@ name: CI - Terraform Validate and Plan
 on:
   pull_request:
     branches:
-      - main
+      - master
     paths:
       - '**.tf'
       - '.github/workflows/**'

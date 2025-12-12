@@ -3,7 +3,7 @@ name: CD - Terraform Apply and Deploy Website
 on:
   push:
     branches:
-      - main
+      - master
     paths:
       - '**.tf'
       - 'index.html'
